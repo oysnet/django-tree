@@ -35,10 +35,12 @@ class TreeSelect(Input):
             final_attrs['value'] = force_unicode(self._format_value(value))
         
         url = self._get_tree_popup_url()
-        return mark_safe(u'<input%s/> <a href="%s" class="related-lookup" id="lookup_%s" onclick="return showTreeLookupPopup(this, dismissTreeLookUpPopup);">open</a>' % (flatatt(final_attrs), url, final_attrs['id']))
+        return mark_safe(u'<div class="tree-select"><input%s/> <a href="%s" class="related-lookup" id="lookup_%s" onclick="return showTreeLookupPopup(this, dismissTreeLookUpPopup);">open</a></div>' % (flatatt(final_attrs), url, final_attrs['id']))
     
     class Media:
-        
+        css = {
+            "all": ("tree/css/widget/select.css",)
+        }
         js = ('tree/js/widget/select.js', )
 
     

@@ -1,0 +1,48 @@
+.tree-select {
+  position: relative;
+}
+.tree-select img {
+  border: 1px solid #CCC;
+}
+
+.tree-select a.related-lookup {
+  text-indent: -9999999px;
+  position: absolute;
+  background: transparent;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: none;
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
+  -webkit-transition: all .6s ease-in;
+  -moz-transition: all .6s ease-in;
+  -o-transition: all .6s ease-in;
+  transition: all .6s ease-in;
+}
+.tree-select a.related-lookup:hover {
+  background: rgba(255,255,255,0.6);
+}
+.tree-select a.related-lookup:hover:before {
+  background: url('img/related-lookup_hover.png') no-repeat;
+  background-color: rgba(255,255,255,0.2);
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: block;
+  padding: 0;
+  width: 23px;
+  height: 23px;
+  box-sizing: border-box;
+  cursor: pointer;
+  overflow: hidden;
+  margin: auto auto;
+}
