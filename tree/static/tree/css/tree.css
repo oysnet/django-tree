@@ -1,0 +1,70 @@
+body.grp-popup #grp-content {
+  padding: 0 20px 20px 20px
+}
+.grp-module {
+  margin: 0;
+}
+canvas {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+}
+.unselectable {
+  -moz-user-select: -moz-none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.thumbnail .wrapper {
+  margin: 5px;
+  height: 120px;
+  width: 100px;
+}
+.thumbnail:after {
+  content: ' ';
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  bottom: 0px;
+  right: 0px;
+}
+.thumbnail-selected span {
+  background-color: #309BBF;
+  color: #FFF;
+  box-shadow: 0.2em 0 0 #309BBF, -0.2em 0 0 #309BBF;
+  -moz-box-shadow: 0.2em 0 0 #309BBF, -0.2em 0 0 #309BBF;
+  -webkit-box-shadow: 0.2em 0 0 #309BBF, -0.2em 0 0 #309BBF;
+}
+.thumbnail-selected .img-wrapper {
+  background-color: #F0F0F0;
+  border-radius: 5px;
+  width: 100px;
+}
+.thumbnail .img-wrapper {
+  line-height: 94px;
+  width: 100px;
+  height: 98px;
+  display: block;
+}
+.thumbnail img {
+  border-radius: 3px;
+  border: 1px solid #A4A4A4;
+  vertical-align: middle;
+  box-shadow: 1px 1px 3px #A4A4A4;
+}
+.thumbnail span {
+  padding: 1px 2px;
+}
+.thumbnail .label {
+  line-height: 1.1em;
+  padding: 2px;
+  display: block;
+  position: absolute;
+  bottom: 0px;
+  left: 6px;
+  right: 6px;
+  max-height: 23px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}

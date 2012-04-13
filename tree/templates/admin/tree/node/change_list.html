@@ -1,0 +1,44 @@
+{% extends "admin/change_list.html" %}
+{% load admin_static %}
+{% block stylesheets %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "tree/css/tree.css" %}" />
+</style>
+
+{% endblock %}
+
+{% block javascripts %}
+  {{ block.super }} 
+<script type="text/javascript">
+
+  var STATIC_URL = '{{STATIC_URL}}';
+  (function($) {
+    $(document).ready(function() {
+      $(window).resize(function() {
+        height = $(window).height() - (
+          $('#grp-content-title').offset().top + 
+          $('#grp-content-title').height() +
+          parseInt($('#grp-content').css("padding-top")) +
+          parseInt($('#grp-content').css("padding-bottom"))
+          );
+        $('#tree-container').height(height);
+      });
+      $(window).resize();
+    });
+  })(django.jQuery);
+
+  function on_item_click(item) {
+    
+    {% if is_popup %}
+    window.treeCallback(window, item);
+    {% else %}
+    document.location.href = item.admin_change_url;
+    {% endif %}
+  }
+</script>
+<script type="text/javascript" src="{% static "tree/js/app/build/script/tree.js" %}"></script>
+{% endblock %}
+
+{% block object-tools %}{% endblock %}
+
+{% block content %}<div id="tree-container" class="grp-module grp-changelist-results"></div>{% endblock %} 
