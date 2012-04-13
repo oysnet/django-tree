@@ -1,0 +1,5 @@
+.project
+.pydevproject
+*.pyc
+.settings
+tree/static/tree/js/app/source/script/
