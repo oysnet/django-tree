@@ -9,10 +9,17 @@ from tree import settings as tree_settings
 from tree.helpers import get_data_for_item
 import re
 from django.db import models
+from django.views.decorators.cache import never_cache
+from django.conf import settings
 
+use_cacheops = False
+if 'cacheops' in settings.INSTALLED_APPS:
+    use_cacheops = True
+    from cacheops import invalidate_model
     
 class Upload(View):
     
+    @never_cache
     @csrf_exempt
     def dispatch(self, request, *args, **kwargs):
         
@@ -29,6 +36,7 @@ class Upload(View):
 
 class MoveItems(View):
     
+    @never_cache
     @csrf_exempt
     def dispatch(self, request, *args, **kwargs):
         
@@ -39,11 +47,16 @@ class MoveItems(View):
     
     def post(self,request, *args, **kwargs):
         
+       
         
         items = request.DATA.get('items');
-        node = request.DATA.get('node')
         
-        NodeItem.objects.filter(pk__in=items).update(node=Node.objects.get(pk=node))        
+        node=Node.objects.get(pk=request.DATA.get('node'))
+        
+        
+        for item in NodeItem.objects.filter(pk__in=items):
+            item.node = node        
+            item.save()
         
         return HttpResponse()
 
@@ -51,6 +64,7 @@ class MoveItems(View):
 
 class MoveNode(View):
     
+    @never_cache
     @csrf_exempt
     def dispatch(self, request, *args, **kwargs):
         if request.method in ['POST', 'PUT'] and 'application/json' in request.META['CONTENT_TYPE']:
@@ -77,15 +91,25 @@ class MoveNode(View):
         node.parent = target
         node.save()
         
+        if use_cacheops:
+            invalidate_model(Node)
+        
         return HttpResponse(simplejson.dumps({'name' : node.name, 'position' : list(Node.objects.get(pk=request.DATA.get('target')).get_children()).index(node)}), content_type="application/json")
 
 class NodeItemView(SingleObjectMixin, View):
     
     model = Node
     
+    @never_cache
+    def dispatch(self, request, *args, **kwargs):
+        return super(NodeItemView, self).dispatch(request, *args, **kwargs)
+    
     def get(self,request, *args, **kwargs):
         
+        
+        
         node = self.get_object()
+        
         
         items = []
         
@@ -110,6 +134,7 @@ class NodeView(SingleObjectMixin, View):
     
     model = Node
     
+    @never_cache
     @csrf_exempt
     def dispatch(self, request, *args, **kwargs):
         
@@ -141,6 +166,9 @@ class NodeView(SingleObjectMixin, View):
         node.name = request.POST.get('name')
         node.save()
         
+        if use_cacheops:
+            invalidate_model(Node)
+        
         return HttpResponse('')
     
     def post(self,request,  *args, **kwargs):
@@ -152,6 +180,9 @@ class NodeView(SingleObjectMixin, View):
         
         node = Node(parent_id=request.POST.get('parent'), name=request.POST.get('name'))
         node.save()
+        
+        if use_cacheops:
+            invalidate_model(Node)
         
         return HttpResponse(simplejson.dumps({
                     'name' : node.name,
@@ -166,6 +197,10 @@ class NodeView(SingleObjectMixin, View):
 class ChildrenView(SingleObjectMixin, View):
     
     model = Node
+    
+    @never_cache
+    def dispatch(self, request, *args, **kwargs):
+        return super(ChildrenView, self).dispatch(request, *args, **kwargs)
     
     def get(self,request, *args, **kwargs):
         
