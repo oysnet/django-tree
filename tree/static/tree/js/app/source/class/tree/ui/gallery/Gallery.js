@@ -4,7 +4,11 @@
 
 qx.Class.define("tree.ui.gallery.Gallery", {
 	extend : qx.ui.container.Composite,
-
+  
+	events : {
+	 itemsloaded : 'qx.event.type.Event'
+	},
+	
 	properties : {
 		items : {
 			init : null,
@@ -17,11 +21,13 @@ qx.Class.define("tree.ui.gallery.Gallery", {
 			event : 'changeNode'
 		}
 	},
-	construct : function(title) {
+	construct : function(title, tree) {
 		this.base(arguments, title);
 
 		this.__uploaders = {};
-
+    
+		this.__tree = tree;
+		
 		this.addListener('mouseup', this._onMouseUp, this);
 
 		this.addListenerOnce('appear', function() {
@@ -108,9 +114,31 @@ qx.Class.define("tree.ui.gallery.Gallery", {
 	members : {
 
 		__scroller : null,
-
+    __tree : null,
 		__uploaders : null,
-
+    
+		selectItem : function (itemPk) {
+		  var selectIt = null;
+			this.getItems().forEach(function (item) {
+				if (item.itemPk == itemPk) {
+				  selectIt = item;
+					return false;
+				
+				}
+			});
+			
+			this.manager.selectItem(this.getDataForItem(selectIt))
+			
+		},
+		
+		getDataForItem : function (item) {
+			
+			var pos = this.getItems().indexOf(item);
+      var row = parseInt(pos / this.itemPerLine);
+      var col = pos - ( row * this.itemPerLine ) 
+			return {row:row, column:col};
+		},
+		
 		_thumbnailPreview : function(reader, file, uploadId, event) {
 
 			var image = new Image();
@@ -315,7 +343,9 @@ qx.Class.define("tree.ui.gallery.Gallery", {
 			}
 			this.manager.clearSelection();
 			this.updateItems();
-
+      
+			this.fireEvent('itemsloaded');
+			
 		},
 
 		_applyNode : function(value, old) {
@@ -399,6 +429,9 @@ qx.Class.define("tree.ui.gallery.Gallery", {
 				var data = this.getItemData(parseInt(coord[0]),
 						parseInt(coord[1]));
 				if (typeof(data.uploadId) === 'undefined') {
+					
+					data.path = this.__tree.getCurrentPath() + '/' + data.itemPk;
+					
 					on_item_click(data);
 				}
 			}
@@ -414,12 +447,23 @@ qx.Class.define("tree.ui.gallery.Gallery", {
 			if (colCount == this.itemsPerLine) {
 				return;
 			}
+			
+			var selectedItems = [];
+			this.manager.getSelection().forEach(qx.lang.Function.bind(function (item) {
+			   selectedItems.push(this.getItemData(item.row, item.column));
+			},this));
+			
 			this.itemPerLine = colCount;
 			var rowCount = Math.ceil(this.itemCount / colCount);
 
 			pane.getColumnConfig().setItemCount(colCount);
 			pane.getRowConfig().setItemCount(rowCount);
-
+      
+			selection = [];
+			selectedItems.forEach(qx.lang.Function.bind(function (item) {
+				selection.push(this.getDataForItem(item));
+			},this))
+			this.manager.replaceSelection(selection);
 		},
 
 		_onLayerUpdated : function() {

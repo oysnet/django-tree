@@ -5,7 +5,7 @@ qx.Class.define("tree.ui.tree.Tree", {
 		dropend : 'qx.event.type.Data'
 	},
 
-	construct : function() {
+	construct : function(path) {
 
 		var root = {
 			label : "Root",
@@ -20,7 +20,12 @@ qx.Class.define("tree.ui.tree.Tree", {
 		this.__rootNode = root
 		this.__nodes = {};
 
-		this.__loadChildren(root, true);
+		
+		if (path === null) {
+			this.__loadChildren(root, true);
+		} else {
+			this.__loadPath(root, path);
+		}
 
 		this.base(arguments, root, "name", "children");
 
@@ -112,7 +117,8 @@ qx.Class.define("tree.ui.tree.Tree", {
 
 									resource.addListener('error', function() {
 												popupWaiting.close()
-												new tree.ui.popup.Error(this.tr('something went wrong'));
+												new tree.ui.popup.Error(this
+														.tr('something went wrong'));
 											}, this);
 
 									resource.moveToNode(post);
@@ -134,9 +140,9 @@ qx.Class.define("tree.ui.tree.Tree", {
 											event) {
 
 										var position = event.getData().position;
-                    
+
 										movedNode.setName(event.getData().name)
-										
+
 										popupWaiting.close()
 
 										this.getParent(movedNode).getChildren()
@@ -147,17 +153,16 @@ qx.Class.define("tree.ui.tree.Tree", {
 												movedNode);
 										this.refresh();
 
-										
 										this.openNodeAndParents(movedNode);
 										this
 												.setSelection(new qx.data.Array([movedNode]));
-											
 
 									}, this);
 
 									resource.addListener('error', function() {
 												popupWaiting.close()
-												new tree.ui.popup.Error(this.tr('something went wrong'));
+												new tree.ui.popup.Error(this
+														.tr('something went wrong'));
 											}, this);
 
 									resource.moveToNode(post);
@@ -201,7 +206,7 @@ qx.Class.define("tree.ui.tree.Tree", {
 
 	members : {
 		__nodes : null,
-    __rootNode : null,
+		__rootNode : null,
 		__menuBtnDeleteFolder : null,
 
 		__createContextMenu : function() {
@@ -243,7 +248,9 @@ qx.Class.define("tree.ui.tree.Tree", {
 			var node = this.getSelection().getItem(0);
 
 			var popup = new tree.ui.popup.Confirm();
-			popup.setText(this.tr('Delete the node named "%1"', node.getName()))
+			popup
+					.setText(this.tr('Delete the node named "%1"', node
+									.getName()))
 
 			popup.addListener('continue', function() {
 						var resource = new tree.io.rest.Node();
@@ -259,15 +266,16 @@ qx.Class.define("tree.ui.tree.Tree", {
 						resource.addListener('success',
 								function(parent, event) {
 									popupWaiting.close();
-                  var parent = this.getParent(node);
+									var parent = this.getParent(node);
 									var pchildren = parent.getChildren();
 									pchildren.remove(node);
-									
+
 									delete this.__nodes[node.getPk()]
-									
+
 									this.openNode(parent);
-									this.setSelection(new qx.data.Array([parent]));
-									
+									this
+											.setSelection(new qx.data.Array([parent]));
+
 								}, this);
 
 						resource.del({
@@ -375,36 +383,78 @@ qx.Class.define("tree.ui.tree.Tree", {
 
 		},
 
-		__loadChildren : function(parent, selectFirst) {
-      
-			selectFirst = typeof(selectFirst) !== 'undefined' ? selectFirst : false; 
-			
-			var resource = new tree.io.rest.Node();
+		__registerNodes : function(nodes) {
 
+			for (var i = 0, l = nodes.getLength(); i < l; i++) {
+				var n = nodes.getItem(i);
+				this.__nodes[n.getPk()] = n;
+				if (n.getChildren().getLength()>0 && n.getLoaded() === true) {
+					this.__registerNodes(n.getChildren());
+				}
+				
+			}
+
+		},
+
+		__loadPath : function(parent, path) {
+
+			var resource = new tree.io.rest.Node();
 			resource.addListener('success', qx.lang.Function.bind(function(
 									parent, event) {
 
 								var children = qx.data.marshal.Json
-										.createModel(event.getData(), true);
+										.createModel([event.getData()], true);
 
-								for (var i = 0, l = children.getLength(); i < l; i++) {
-									var n = children.getItem(i);
-									this.__nodes[n.getPk()] = n;
-								}
+								this.__registerNodes(children);
 
 								parent.setChildren(children);
-
-								if (this.isNodeOpen(parent) === false) {
-									this.openNode(parent);
-								}
-                
-								if (selectFirst === true && children.getLength() > 0) {
-								  this.setSelection(new qx.data.Array([children.getItem(0)]));
-								} 
-								
 								parent.setLoaded(true);
-
+                
+								var nodes = path.split('/'), last = nodes[nodes.length-1], node=this.__nodes[parseInt(last)];
+								
+								
+								this.openNodeAndParents(node);
+								this.setSelection(new qx.data.Array([node]));
 							}, this, parent));
+
+			resource.loadPath({
+						path : path
+					});
+
+		},
+
+		__loadChildren : function(parent, selectFirst) {
+
+			selectFirst = typeof(selectFirst) !== 'undefined'
+					? selectFirst
+					: false;
+
+			var resource = new tree.io.rest.Node();
+
+			resource.addListener('success', qx.lang.Function.bind(function(
+					parent, event) {
+
+				var children = qx.data.marshal.Json.createModel(
+						event.getData(), true);
+
+				for (var i = 0, l = children.getLength(); i < l; i++) {
+					var n = children.getItem(i);
+					this.__nodes[n.getPk()] = n;
+				}
+
+				parent.setChildren(children);
+
+				if (this.isNodeOpen(parent) === false) {
+					this.openNode(parent);
+				}
+
+				if (selectFirst === true && children.getLength() > 0) {
+					this.setSelection(new qx.data.Array([children.getItem(0)]));
+				}
+
+				parent.setLoaded(true);
+
+			}, this, parent));
 
 			if (parent.getPk() === null) {
 				resource.getRoot();
@@ -416,6 +466,23 @@ qx.Class.define("tree.ui.tree.Tree", {
 
 		},
 
+		
+    
+		getCurrentPath : function () {
+			
+			var path = [this.getSelection().getItem(0).getPk()];
+			
+			this.getAncestors(this.getSelection().getItem(0)).forEach(function (node) {
+			 if (node.getPk() !== null) {
+			   path.push(node.getPk());
+			 }
+			 
+			});
+			path.reverse();
+			return path.join('/')
+			
+		},
+		
 		getAncestors : function(node) {
 
 			var ancestors = [];

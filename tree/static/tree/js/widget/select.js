@@ -3,7 +3,7 @@ function dismissTreeLookUpPopup(win, item) {
     var elem = document.getElementById(name);
     
     document.getElementById(name).value = item.pk;
-    
+    document.getElementById('id_tree_path_' + name).value = item.path;
     elem.focus();
     win.close();
   }
@@ -18,7 +18,11 @@ function showTreeLookupPopup(triggeringLink, cb) {
     } else {
         href = triggeringLink.href + '?pop=1';
     }
-
+    var treePath = document.getElementById('id_tree_path_' + name).value;
+    if (treePath != '') {
+      href += "&path=" + treePath;
+    }
+    
     var win = window.open(href, name, 'height=500,width=980,resizable=yes,scrollbars=no');
     win.treeCallback = cb;
     win.focus();

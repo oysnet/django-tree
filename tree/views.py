@@ -193,6 +193,67 @@ class NodeView(SingleObjectMixin, View):
                     'children' : [],
                     'parent' : node.parent.pk if node.parent is not None else None
                 }), content_type="application/json", status=201)
+       
+class LoadPath( View):
+        
+    @never_cache
+    def dispatch(self, request, *args, **kwargs):
+        return super(LoadPath, self).dispatch(request, *args, **kwargs)
+    
+    def get(self,request, *args, **kwargs):
+        path = request.GET.get('path').split('/')
+        
+        json = []
+        
+        last_json = None
+        
+        path.reverse()
+        
+        for node_pk in path:
+            
+            
+            node = Node.objects.get(pk=node_pk)
+            
+            _json = {
+                            'name' : node.name,
+                            'icon' : 'default',
+                            'loaded' : True,
+                            'pk' : node.pk,
+                            'children' : [],
+                            'parent' : node.parent.pk if node.parent is not None else None
+                        }
+            
+            
+            
+            
+            for child in node.get_children():
+                
+                if last_json is not None and last_json['pk'] == child.pk:
+                    
+                    _json['children'].append(last_json)
+                    _json['loaded'] = True
+                else:
+                
+                    _json['children'].append({
+                            'name' : child.name,
+                            'icon' : 'default',
+                            'loaded' : child.is_leaf_node(),
+                            'pk' : child.pk,
+                            'children' : [],
+                            'parent' : child.parent.pk if child.parent is not None else None
+                        })
+                    
+                    if not child.is_leaf_node():
+                        _json['children'][-1]['children'] = [{
+                                        'name' : "Loading",
+                                        'icon' : "loading"
+                                    }]
+            
+                
+            last_json = _json
+        
+        json = _json
+        return HttpResponse(simplejson.dumps(json), content_type="application/json")
         
 class ChildrenView(SingleObjectMixin, View):
     

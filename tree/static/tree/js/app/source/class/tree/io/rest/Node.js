@@ -24,6 +24,10 @@ qx.Class.define("tree.io.rest.Node", {
 						method : "GET",
 						url : '/tree/getChildrenOf/{id}/'
 					},
+					"loadPath" : {
+            method : "GET",
+            url : '/tree/loadPath/?path={path}'
+          },
 					"moveToNode" : {
             method : "POST",
             url : '/tree/movenode/'
