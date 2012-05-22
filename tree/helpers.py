@@ -1,6 +1,7 @@
 from django.contrib.contenttypes.models import ContentType
 import settings as tree_settings
 from django.core.urlresolvers import reverse
+from models import NodeItem
 
 def get_user_defined_data(obj, ct = None):
     
@@ -22,6 +23,11 @@ def get_data_for_item(item):
     
     return d
 
+
+def get_tree_path(obj):
+    
+    node_item = NodeItem.objects.get(content_type=ContentType.objects.get_for_model(obj), object_id=obj.pk)
+    return  '/'.join([str(node.pk) for node in [node_item.node.get_root()] + list(node_item.node.get_ancestors(include_self=True))] + [str(node_item.pk)])
 
 class TreeWidgetAdmin(object):
     "Admin mixin used to override widget in admin form"

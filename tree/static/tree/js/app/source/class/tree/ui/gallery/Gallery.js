@@ -4,11 +4,11 @@
 
 qx.Class.define("tree.ui.gallery.Gallery", {
 	extend : qx.ui.container.Composite,
-  
+
 	events : {
-	 itemsloaded : 'qx.event.type.Event'
+		itemsloaded : 'qx.event.type.Event'
 	},
-	
+
 	properties : {
 		items : {
 			init : null,
@@ -25,9 +25,9 @@ qx.Class.define("tree.ui.gallery.Gallery", {
 		this.base(arguments, title);
 
 		this.__uploaders = {};
-    
+
 		this.__tree = tree;
-		
+
 		this.addListener('mouseup', this._onMouseUp, this);
 
 		this.addListenerOnce('appear', function() {
@@ -114,31 +114,35 @@ qx.Class.define("tree.ui.gallery.Gallery", {
 	members : {
 
 		__scroller : null,
-    __tree : null,
+		__tree : null,
 		__uploaders : null,
-    
-		selectItem : function (itemPk) {
-		  var selectIt = null;
-			this.getItems().forEach(function (item) {
-				if (item.itemPk == itemPk) {
-				  selectIt = item;
-					return false;
-				
-				}
-			});
-			
+		_contextMenu : null,
+
+		selectItem : function(itemPk) {
+			var selectIt = null;
+			this.getItems().forEach(function(item) {
+						if (item.itemPk == itemPk) {
+							selectIt = item;
+							return false;
+
+						}
+					});
+
 			this.manager.selectItem(this.getDataForItem(selectIt))
-			
+
 		},
-		
-		getDataForItem : function (item) {
-			
+
+		getDataForItem : function(item) {
+
 			var pos = this.getItems().indexOf(item);
-      var row = parseInt(pos / this.itemPerLine);
-      var col = pos - ( row * this.itemPerLine ) 
-			return {row:row, column:col};
+			var row = parseInt(pos / this.itemPerLine);
+			var col = pos - (row * this.itemPerLine)
+			return {
+				row : row,
+				column : col
+			};
 		},
-		
+
 		_thumbnailPreview : function(reader, file, uploadId, event) {
 
 			var image = new Image();
@@ -159,51 +163,50 @@ qx.Class.define("tree.ui.gallery.Gallery", {
 					height = parseInt(height / scale);
 					width = parseInt(width / scale);
 				}
-        
+
 				var html = '<div class="wrapper" id="preview-'
-            + uploadId
-            + '"><canvas width=20 height=20></canvas><div class="img-wrapper"><img src="'
-            + event.target.result + '" height="' + height
-            + '" width="' + width
-            + '"></div><div class="label"><span>' + this._getTitleForFile(file)
-            + '</span></div></div>';
-				
-         this._addPreview(uploadId, html);
-				
+						+ uploadId
+						+ '"><canvas width=20 height=20></canvas><div class="img-wrapper"><img src="'
+						+ event.target.result + '" height="' + height
+						+ '" width="' + width
+						+ '"></div><div class="label"><span>'
+						+ this._getTitleForFile(file) + '</span></div></div>';
+
+				this._addPreview(uploadId, html);
+
 			}, this)
 
 		},
-    
-		_getTitleForFile : function (file) {
-			
-			var title = file.name.split('.');
-			title.splice(-1,1);
-			return title.join('.');
-			
-		},
-		
-		_noThumbnailPreview : function(file, uploadId) {
-        var html = '<div class="wrapper" id="preview-'
-            + uploadId
-            + '"><canvas width=20 height=20></canvas><div class="img-wrapper"><img src="" height="" width=""></div><div class="label"><span>' 
-            + this._getTitleForFile(file)
-            + '</span></div></div>';
-        
-         this._addPreview(uploadId, html);
 
-    },
-		
-		_addPreview : function(uploadId, html) {
-        var item = {
-          html : html,
-          uploadId : uploadId
-        };
-        this.__uploaders[this.getNode().getPk()][uploadId].item = item;
-        this.getItems().push(item);
-        this.updateItems();
-			
+		_getTitleForFile : function(file) {
+
+			var title = file.name.split('.');
+			title.splice(-1, 1);
+			return title.join('.');
+
 		},
-		
+
+		_noThumbnailPreview : function(file, uploadId) {
+			var html = '<div class="wrapper" id="preview-'
+					+ uploadId
+					+ '"><canvas width=20 height=20></canvas><div class="img-wrapper"><img src="" height="" width=""></div><div class="label"><span>'
+					+ this._getTitleForFile(file) + '</span></div></div>';
+
+			this._addPreview(uploadId, html);
+
+		},
+
+		_addPreview : function(uploadId, html) {
+			var item = {
+				html : html,
+				uploadId : uploadId
+			};
+			this.__uploaders[this.getNode().getPk()][uploadId].item = item;
+			this.getItems().push(item);
+			this.updateItems();
+
+		},
+
 		_noopHandler : function(evt) {
 			evt.stopPropagation();
 			evt.preventDefault();
@@ -223,50 +226,47 @@ qx.Class.define("tree.ui.gallery.Gallery", {
 				var file = files[i];
 
 				var uploadId = Math.ceil(Math.random() * 10000).toString();
-        
+
 				// setup uploader
 				var uploader = new tree.io.Uploader(file, {
-              node : this.getNode().getPk()
-            });
+							node : this.getNode().getPk()
+						});
 
-        if (typeof(this.__uploaders[this.getNode().getPk()]) == 'undefined') {
-          this.__uploaders[this.getNode().getPk()] = {};
-        }
+				if (typeof(this.__uploaders[this.getNode().getPk()]) == 'undefined') {
+					this.__uploaders[this.getNode().getPk()] = {};
+				}
 
-        this.__uploaders[this.getNode().getPk()][uploadId] = {
-          uploader : uploader,
-          item : null,
-          progress : new tree.ui.Progress(uploader)
-        };
-        
-				
-        // preview         
+				this.__uploaders[this.getNode().getPk()][uploadId] = {
+					uploader : uploader,
+					item : null,
+					progress : new tree.ui.Progress(uploader)
+				};
+
+				// preview
 				totalSize += file.size
-				if ( totalSize > limit) {
-          this._noThumbnailPreview(file, uploadId);
-          
+				if (totalSize > limit) {
+					this._noThumbnailPreview(file, uploadId);
+
 				} else {
 					var preview = new FileReader();
 					// Firefox 3.6, WebKit
 					if (preview.addEventListener) {
-						preview.addEventListener('loadend', qx.lang.Function
-										.bind(this._thumbnailPreview, this, preview,
-												file, uploadId), false);
+						preview
+								.addEventListener('loadend', qx.lang.Function
+												.bind(this._thumbnailPreview,
+														this, preview, file,
+														uploadId), false);
 						// Chrome 7
 					} else {
-						preview.onloadend = qx.lang.Function
-								.bind(this._thumbnailPreview, this, preview, file,
-										uploadId);
+						preview.onloadend = qx.lang.Function.bind(
+								this._thumbnailPreview, this, preview, file,
+								uploadId);
 					}
 					preview.readAsDataURL(file);
 				}
 
-				
-
-				
-
 				uploader.addListener('changeState', qx.lang.Function.bind(
-						function(node, uploadId,uploader, event) {
+						function(node, uploadId, uploader, event) {
 
 							var state = event.getData();
 							if (state == 'complete') {
@@ -343,9 +343,9 @@ qx.Class.define("tree.ui.gallery.Gallery", {
 			}
 			this.manager.clearSelection();
 			this.updateItems();
-      
+
 			this.fireEvent('itemsloaded');
-			
+
 		},
 
 		_applyNode : function(value, old) {
@@ -415,25 +415,58 @@ qx.Class.define("tree.ui.gallery.Gallery", {
 				return
 			}
 
-			var nativeEvent = event.getNativeEvent();
-			if (nativeEvent.altKey === true || nativeEvent.ctrlKey === true
-					|| nativeEvent.metaKey === true
-					|| nativeEvent.shiftKey === true) {
-				return;
-			}
+			var data = null;
 			var collection = qx.bom.Collection
 					.create(event.getOriginalTarget());
 			if (collection.getClass().split(' ').indexOf('thumbnail') !== -1) {
 				var coord = collection.getAttribute("data-item-coordinates")
 						.split(',');
-				var data = this.getItemData(parseInt(coord[0]),
-						parseInt(coord[1]));
+				data = this.getItemData(parseInt(coord[0]), parseInt(coord[1]));
 				if (typeof(data.uploadId) === 'undefined') {
-					
-					data.path = this.__tree.getCurrentPath() + '/' + data.itemPk;
-					
-					on_item_click(data);
+
+					data.path = this.__tree.getCurrentPath() + '/'
+							+ data.itemPk;
 				}
+			}
+
+			if (data === null) {
+				return;
+			}
+
+			if (event.isRightPressed()) {
+
+				if (this._contextMenu === null) {
+					this._contextMenu = new qx.ui.menu.Menu;
+					var btn = new qx.ui.menu.Button(this.tr('Edit'), null);
+					this._contextMenu.add(btn);
+
+					if (typeof(on_item_edit) === 'undefined') {
+						btn.setEnabled(false);
+					} else {
+						btn.addListener('execute', function() {
+									on_item_edit(data)
+								}, this);
+					}
+
+				}
+
+				this._contextMenu.setPlaceMethod("mouse")
+				this._contextMenu.placeToPoint({
+							left : event.getDocumentLeft(),
+							top : event.getDocumentTop()
+						})
+				this._contextMenu.show();
+
+			} else {
+				var nativeEvent = event.getNativeEvent();
+				if (nativeEvent.altKey === true || nativeEvent.ctrlKey === true
+						|| nativeEvent.metaKey === true
+						|| nativeEvent.shiftKey === true) {
+					return;
+				}
+
+				on_item_click(data);
+
 			}
 
 		},
@@ -447,22 +480,24 @@ qx.Class.define("tree.ui.gallery.Gallery", {
 			if (colCount == this.itemsPerLine) {
 				return;
 			}
-			
+
 			var selectedItems = [];
-			this.manager.getSelection().forEach(qx.lang.Function.bind(function (item) {
-			   selectedItems.push(this.getItemData(item.row, item.column));
-			},this));
-			
+			this.manager.getSelection().forEach(qx.lang.Function.bind(function(
+							item) {
+						selectedItems.push(this.getItemData(item.row,
+								item.column));
+					}, this));
+
 			this.itemPerLine = colCount;
 			var rowCount = Math.ceil(this.itemCount / colCount);
 
 			pane.getColumnConfig().setItemCount(colCount);
 			pane.getRowConfig().setItemCount(rowCount);
-      
+
 			selection = [];
-			selectedItems.forEach(qx.lang.Function.bind(function (item) {
-				selection.push(this.getDataForItem(item));
-			},this))
+			selectedItems.forEach(qx.lang.Function.bind(function(item) {
+						selection.push(this.getDataForItem(item));
+					}, this))
 			this.manager.replaceSelection(selection);
 		},
 
@@ -512,8 +547,7 @@ qx.Class.define("tree.ui.gallery.Gallery", {
 		 * 
 		 * ctx.beginPath(); ctx.arc(10.001, 10.001, 2.5, 0, (Math.PI * 2) / 100 *
 		 * percent, false); ctx.strokeStyle = "#309BBF"; ctx.lineWidth = 5.001;
-		 * ctx.stroke(); }
-		 *  },
+		 * ctx.stroke(); } },
 		 */
 		getCellProperties : function(row, column) {
 			var itemData = this.getItemData(row, column);

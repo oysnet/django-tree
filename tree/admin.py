@@ -12,6 +12,12 @@ class NodeChangeList(ChangeList):
         except:
             pass
         
+        try:
+            del params['opener_callback']
+        except:
+            pass
+        
+        
         request.GET = params
         super(NodeChangeList, self).__init__(request, *args, **kwargs)
         

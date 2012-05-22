@@ -6,6 +6,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.contenttypes.models import ContentType
 from tree.models import Node, NodeItem
 from tree.helpers import get_user_defined_data
+from helpers import get_tree_path
 
 
 class TreeSelect(Input):
@@ -27,10 +28,11 @@ class TreeSelect(Input):
         return reverse('admin:%s_%s_changelist' %(ct.app_label,  ct.model) )
     
     def _get_tree_path(self, value):
-        
+        return get_tree_path(self.model.objects.get(pk=value))
+        """
         node_item = NodeItem.objects.get(content_type=ContentType.objects.get_for_model(self.model), object_id=value)
         return  '/'.join([str(node.pk) for node in [node_item.node.get_root()] + list(node_item.node.get_ancestors(include_self=True))] + [str(node_item.pk)])
-        
+        """
     
     def render(self, name, value, attrs=None, choices=()):
         if value is None: value = ''

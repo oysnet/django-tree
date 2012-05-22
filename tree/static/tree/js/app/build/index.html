@@ -59,6 +59,11 @@
           function on_item_click(item) {
             console.debug('on_item_click', item);
           }
+          
+          function on_item_edit(item) {
+            document.location.href=item.admin_change_url + "?path=" + item.path + '&_popup=1'
+          }
+          
         </script>
     <!-- EXTRAHEAD -->
        

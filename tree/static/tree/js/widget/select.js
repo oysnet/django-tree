@@ -22,9 +22,10 @@ function showTreeLookupPopup(triggeringLink, cb) {
     if (treePath != '') {
       href += "&path=" + treePath;
     }
+    href += '&opener_callback=' + cb.name;
     
     var win = window.open(href, name, 'height=500,width=980,resizable=yes,scrollbars=no');
-    win.treeCallback = cb;
+    //win.treeCallback = cb;
     win.focus();
     return false;
 }

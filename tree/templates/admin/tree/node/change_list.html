@@ -26,15 +26,43 @@
       $(window).resize();
     });
   })(django.jQuery);
-
+  
+  function getQueryVariable (variable) {
+      var query = window.location.search.substring(1);
+      var vars = query.split("&");
+      for (var i = 0; i < vars.length; i++) {
+        var pair = vars[i].split("=");
+        if (pair[0] == variable) {
+          return unescape(pair[1]);
+        }
+      }
+      return null;
+    }
+  
   function on_item_click(item) {
     
     {% if is_popup %}
-    window.treeCallback(window, item);
+    
+    var cb = getQueryVariable('opener_callback');
+    if (cb !== null) {
+      opener[cb](window, item)
+    }
+    
+    //window.treeCallback(window, item);
     {% else %}
-    document.location.href = item.admin_change_url;
+    document.location.href = item.admin_change_url + '?callback_url=' + '{{request.get_full_path|urlencode}}';
     {% endif %}
   }
+  
+  function on_item_edit(item) {
+    
+    var url = item.admin_change_url + '?callback_url=' + '{{request.get_full_path|urlencode}}';
+    {% if is_popup %}
+    url += '&_popup=1';
+    {% endif %}
+    document.location.href=url;
+  }
+  
 </script>
 <script type="text/javascript" src="{% static "tree/js/app/build/script/tree.js" %}"></script>
 {% endblock %}
