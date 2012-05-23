@@ -16,7 +16,7 @@ class Node(MPTTModel):
     class Meta:
         verbose_name = 'Tree Explorer'
         verbose_name_plural = 'Tree Explorer'
-        
+        ordering = ('name',)
         unique_together=('name', 'parent')
         
 class NodeItem(models.Model):

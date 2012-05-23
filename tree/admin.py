@@ -18,6 +18,12 @@ class NodeChangeList(ChangeList):
             pass
         
         
+        try:
+            del params['CKEditorFuncNum']
+        except:
+            pass
+        
+        
         request.GET = params
         super(NodeChangeList, self).__init__(request, *args, **kwargs)
         

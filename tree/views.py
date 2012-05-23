@@ -11,7 +11,8 @@ import re
 from django.db import models
 from django.views.decorators.cache import never_cache
 from django.conf import settings
-
+from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.contenttypes.models import ContentType
 use_cacheops = False
 if 'cacheops' in settings.INSTALLED_APPS:
     use_cacheops = True
@@ -23,12 +24,18 @@ class Upload(View):
     @csrf_exempt
     def dispatch(self, request, *args, **kwargs):
         
-        item = NodeItem(node=Node.objects.get(pk=request.POST.get('node')))
+        node=Node.objects.get(pk=request.POST.get('node'))
         
         f = request.FILES['file']
         o = tree_settings.MIME_TYPES[f.content_type](f)
         
-        item.content_object = o
+        try:
+            item = NodeItem.objects.get(content_type=ContentType.objects.get_for_model(o), object_id=o.pk)
+        except ObjectDoesNotExist:        
+            item = NodeItem()            
+            item.content_object = o
+        
+        item.node = node
         item.save()
                 
         return HttpResponse(simplejson.dumps(get_data_for_item(item)), content_type="application/json")
@@ -182,7 +189,10 @@ class NodeView(SingleObjectMixin, View):
         node.save()
         
         if use_cacheops:
+            print 'invalidate'
             invalidate_model(Node)
+            node = Node.objects.get(pk=node.pk)
+            
         
         return HttpResponse(simplejson.dumps({
                     'name' : node.name,
