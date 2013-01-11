@@ -24,6 +24,7 @@ qx.Class.define("tree.ui.tree.Tree", {
 		if (path === null) {
 			this.__loadChildren(root, true);
 		} else {
+			this.__firstLoad = false;
 			this.__loadPath(root, path);
 		}
 
@@ -208,7 +209,9 @@ qx.Class.define("tree.ui.tree.Tree", {
 		__nodes : null,
 		__rootNode : null,
 		__menuBtnDeleteFolder : null,
-
+    
+		__firstLoad : true,
+		
 		__createContextMenu : function() {
 			var contextMenu = new qx.ui.menu.Menu();
 
@@ -447,13 +450,23 @@ qx.Class.define("tree.ui.tree.Tree", {
 				if (this.isNodeOpen(parent) === false) {
 					this.openNode(parent);
 				}
+				
 
 				if (selectFirst === true && children.getLength() > 0) {
 					this.setSelection(new qx.data.Array([children.getItem(0)]));
 				}
 
 				parent.setLoaded(true);
-
+        
+				if (this.__firstLoad) {
+				  this.__firstLoad = false;
+				  
+				  if (children.getLength() > 0) {
+				    this.__loadChildren(children.getItem(0), false);
+				  }
+				  
+				}
+				
 			}, this, parent));
 
 			if (parent.getPk() === null) {
