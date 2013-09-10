@@ -2,11 +2,12 @@ from django.contrib import admin
 from models import Node, NodeItem
    
 from django.contrib.admin.views.main import ChangeList
+from django.http import  QueryDict
 
 class NodeChangeList(ChangeList):
     
     def __init__(self, request, *args, **kwargs):
-        params = dict(request.GET.items())
+        params = request.GET.copy()
         try:
             del params['path']
         except:
